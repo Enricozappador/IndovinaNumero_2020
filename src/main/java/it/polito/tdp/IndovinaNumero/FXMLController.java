@@ -1,7 +1,10 @@
 package it.polito.tdp.IndovinaNumero;
 
 import java.net.URL;
+import java.security.InvalidParameterException;
 import java.util.ResourceBundle;
+
+import it.polito.tdp.IndovinaNumero.model.Model;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -11,11 +14,9 @@ import javafx.scene.layout.HBox;
 
 public class FXMLController {
 	
-	private final int nmax =100; 
-	private final int tmax = 10; 
-	private int segreto ; 
-	private int tentativifatti; 
-	private boolean ingame = false; 
+	private Model model; 
+	
+
 	
     @FXML
     private ResourceBundle resources;
@@ -43,15 +44,11 @@ public class FXMLController {
 
     @FXML
     void handlenewgame(ActionEvent event) {
-    	this.segreto = (int)(Math.random() * nmax)+1; 
-    	
-    	
-    this.tentativifatti = 0; 
-    this.ingame = true; 
+    	this.model.nuovaParitita();
     
     tentativolayout.setDisable(false);
     resulttxt.clear();
-    rimastitxt.setText(Integer.toString(tmax));
+    rimastitxt.setText(Integer.toString(this.model.getTmax()));
     }
 
     @FXML
@@ -65,30 +62,36 @@ public class FXMLController {
     		resulttxt.appendText("Devi inserire un numero! \n");
     		return; 
     	}
+    	int risultato= -1;
+    	try {
+    	    	 risultato = this.model.tentativo(tent);
+
     	
-    	this.tentativifatti++; 
-    	
-    	
-    	if(tent == this.segreto) {
-    		resulttxt.appendText("Complimenti, hai vinto! Hai utilizzato "+this.tentativifatti+" tentativi!");
-    		tentativolayout.setDisable(true);
-    		this.ingame=false;
+    	} 
+    	catch (IllegalStateException se) {
+    		resulttxt.appendText(se.getMessage());
     		return; 
+    	} catch (InvalidParameterException pe){
+    		resulttxt.appendText(pe.getMessage());
+    		return; 
+    		
+    		    	}
+    	
+    	if(risultato == 0) {
+    		resulttxt.appendText("Complimenti!! Hai vinto usando "+model.getTentativifatti() + " tentativi!");
     	}
-    	if(tentativifatti == tmax){
-    		resulttxt.appendText("Hai perso!! Il numero segreto era: "+ this.segreto);
-    		tentativolayout.setDisable(true);
-    		this.ingame=false;
-    		return;
-    		}
-    	if(tent<this.segreto) {
-    		resulttxt.appendText("Tentativo troppo basso!! \n");
-    	}
-    	else {
-    		resulttxt.appendText("Tentativo troppo alto!! \n");
+    	else if(risultato == -1){
+    		resulttxt.appendText("Tentativo troppo basso! \n");
+    
     	}
     	
-    	rimastitxt.setText(Integer.toString(tmax - tentativifatti));
+    	else {
+    		resulttxt.appendText("Tentativo troppo basso! \n");
+    	}
+    	
+    	rimastitxt.setText(Integer.toString(this.model.getTmax()-this.model.getTentativifatti()));
+    	
+    
     	}
 
     @FXML
@@ -100,5 +103,9 @@ public class FXMLController {
         assert trybtn != null : "fx:id=\"trybtn\" was not injected: check your FXML file 'Scene.fxml'.";
         assert resulttxt != null : "fx:id=\"resulttxt\" was not injected: check your FXML file 'Scene.fxml'.";
 
+    }
+    
+    public void setModel(Model model) {
+    	this.model =new  Model(); 
     }
 }
